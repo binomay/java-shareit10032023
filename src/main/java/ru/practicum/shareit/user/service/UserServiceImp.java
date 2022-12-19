@@ -65,7 +65,7 @@ public class UserServiceImp implements UserService {
 
     private void checkExistingEmail(User user) {
         Integer someUserId = userStorage.getUserIdByEmail(user.getEmail()).orElse(-1);
-        if (someUserId != user.getId() && someUserId != -1) {
+        if (!someUserId.equals(user.getId()) && someUserId != -1) {
             throw new UniqueConstraintException("Не могу поменять e-mail, т.к. пользователь с e-mail: " + user.getEmail() + " уже существует!");
         }
     }

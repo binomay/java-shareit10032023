@@ -88,7 +88,7 @@ public class ItemServiceImpl implements ItemService {
     private void checkOwner(Integer newOwner, Integer oldOwner) {
         if (newOwner == null) {
             throw new RightsException("Не указан owner");
-        } else if (newOwner != oldOwner) {
+        } else if (!newOwner.equals(oldOwner)) {
             throw new RightsException("Редактировать вещь может только ее вдладелец");
         }
     }
