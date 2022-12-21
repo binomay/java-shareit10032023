@@ -5,14 +5,17 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.ResourceNotFoundException;
 import ru.practicum.shareit.exceptions.RightsException;
 import ru.practicum.shareit.exceptions.ValidationException;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.numerators.ItemNumerator;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserServiceImp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,42 +30,45 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item getItemById(Integer itemId) {
-        return itemStorage.getItemById(itemId).orElseThrow(
+    public ItemDto getItemById(Integer itemId) {
+        Item item = itemStorage.getItemById(itemId).orElseThrow(
                 () -> {
                     String msg = "Не нашел item с Id = " + itemId;
                     log.warn(msg);
                     throw new ResourceNotFoundException(msg);
                 }
         );
+        return ItemMapper.toItemDto(item);
     }
 
     @Override
-    public List<Item> getUsersItems(Integer ownerId) {
-        return itemStorage.getUsersItems(ownerId);
+    public List<ItemDto> getUsersItems(Integer ownerId) {
+        return itemStorage.getUsersItems(ownerId).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
     }
 
     @Override
-    public List<Item> getItemsByContextSearch(String context) {
+    public List<ItemDto> getItemsByContextSearch(String context) {
         if (context.isEmpty()) {
             return new ArrayList<>();
         } else {
-            return itemStorage.getItemsByContextSearch(context);
+            return itemStorage.getItemsByContextSearch(context).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
         }
     }
 
     @Override
-    public Item createItem(Item item) {
+    public ItemDto createItem(ItemDto itemDto) {
+        Item item = ItemMapper.toItem(itemDto);
         checkAvialabel(item);
         //проверить, что owner есть на самом деле
-        User owner = userService.getUserById(item.getOwner());
+        UserDto ownerDto = userService.getUserById(item.getOwner());
         item.setId(ItemNumerator.getCurrenItemId());
-        return itemStorage.createItem(item);
+        return ItemMapper.toItemDto(itemStorage.createItem(item));
     }
 
     @Override
-    public Item updateItem(Item item) {
-        Item oldItem = getItemById(item.getId());
+    public ItemDto updateItem(ItemDto itemDto) {
+        Item item = ItemMapper.toItem(itemDto);
+        Item oldItem = ItemMapper.toItem(getItemById(item.getId()));
         //отредактировать вещь может только ее владелец
         checkOwner(item.getOwner(), oldItem.getOwner());
         //отредактировать можно только название, комментарий и доступность...
@@ -75,9 +81,8 @@ public class ItemServiceImpl implements ItemService {
         if (item.getAvailable() != null) {
             oldItem.setAvailable(item.getAvailable());
         }
-        return itemStorage.updateItem(oldItem);
+        return ItemMapper.toItemDto(itemStorage.updateItem(oldItem));
     }
-
 
     private void checkAvialabel(Item item) {
         if (!item.getAvailable()) {
@@ -92,5 +97,5 @@ public class ItemServiceImpl implements ItemService {
             throw new RightsException("Редактировать вещь может только ее вдладелец");
         }
     }
-}
 
+}

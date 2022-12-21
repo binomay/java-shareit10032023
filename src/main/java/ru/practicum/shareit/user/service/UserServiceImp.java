@@ -5,10 +5,13 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exceptions.ResourceNotFoundException;
 import ru.practicum.shareit.exceptions.UniqueConstraintException;
 import ru.practicum.shareit.numerators.UserNumerator;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -20,38 +23,41 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public User getUserById(Integer userId) {
-        return userStorage.getUserById(userId).orElseThrow(
+    public UserDto getUserById(Integer userId) {
+        User user =  userStorage.getUserById(userId).orElseThrow(
                 () -> {
                     String msg = "Не нашел пользователя с Id = " + userId;
                     log.warn(msg);
                     throw new ResourceNotFoundException(msg);
                 }
         );
+        return UserMapper.toUserDto(user);
     }
 
     @Override
-    public List<User> getUserList() {
-        return userStorage.getUserList();
+    public List<UserDto> getUserList() {
+        return   userStorage.getUserList().stream().map(UserMapper::toUserDto).collect(Collectors.toList());
     }
 
     @Override
-    public User createUser(User user) {
+    public UserDto createUser(UserDto userDto) {
+        User user = UserMapper.toUser(userDto);
         checkExistingEmail(user);
         user.setId(UserNumerator.getCurrentUserId());
-        return userStorage.createUser(user);
+        return UserMapper.toUserDto(userStorage.createUser(user));
 
     }
 
     @Override
     public void deleteUser(int userId) {
-        User user = getUserById(userId);
-        userStorage.deleteUser(user);
+        UserDto userDto = getUserById(userId);
+        userStorage.deleteUser(UserMapper.toUser(userDto));
     }
 
     @Override
-    public User updateUser(User user) {
-        User oldUser = getUserById(user.getId());
+    public UserDto updateUser(UserDto userDto) {
+        User oldUser = UserMapper.toUser(getUserById(userDto.getId()));
+        User user = UserMapper.toUser(userDto);
         if (user.getName() == null) {
             user.setName(oldUser.getName());
         }
@@ -59,8 +65,7 @@ public class UserServiceImp implements UserService {
             user.setEmail(oldUser.getEmail());
         }
         checkExistingEmail(user);
-        return userStorage.updateUser(user);
-
+        return UserMapper.toUserDto(userStorage.updateUser(user));
     }
 
     private void checkExistingEmail(User user) {
