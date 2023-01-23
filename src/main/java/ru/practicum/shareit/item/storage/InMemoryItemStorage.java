@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 @Component
 public class InMemoryItemStorage implements ItemStorage {
 
-    private HashMap<Integer, Item> itemList = new HashMap<>();
-    private HashMap<Integer, HashSet<Integer>> usersItems = new HashMap<>();
+    private final HashMap<Integer, Item> itemList = new HashMap<>();
+    private final HashMap<Integer, HashSet<Integer>> usersItems = new HashMap<>();
 
     @Override
     public Item createItem(Item item) {
@@ -20,7 +20,7 @@ public class InMemoryItemStorage implements ItemStorage {
         } else {
             HashSet<Integer> tmpSet = new HashSet<>();
             tmpSet.add(item.getId());
-            usersItems.put(item.getOwner(), tmpSet);
+            usersItems.put(item.getOwner().getId(), tmpSet);
         }
         return item;
     }

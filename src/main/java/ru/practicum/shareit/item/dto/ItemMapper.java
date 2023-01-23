@@ -8,21 +8,15 @@ public class ItemMapper {
         itemDto.setId(item.getId());
         itemDto.setName(item.getName());
         itemDto.setDescription(item.getDescription());
-        itemDto.setOwner(item.getOwner());
+        itemDto.setOwner(item.getOwner().getId());
         itemDto.setAvailable(item.getAvailable());
         itemDto.setRequest(item.getRequest());
         return itemDto;
     }
-
-    public static Item toItem(ItemDto itemDto) {
-        Item item = new Item();
-        item.setId(itemDto.getId());
-        item.setName(itemDto.getName());
-        item.setDescription(itemDto.getDescription());
-        item.setOwner(itemDto.getOwner());
-        item.setAvailable(itemDto.getAvailable());
-        item.setRequest(itemDto.getRequest());
-        return item;
+    public static ItemShortDto itemToItemShortDto(Item item) {
+        ItemShortDto itemShortDto = new ItemShortDto();
+        itemShortDto.setId(item.getId());
+        itemShortDto.setName(item.getName());
+        return itemShortDto;
     }
-
 }
