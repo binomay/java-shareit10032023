@@ -11,23 +11,23 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table( name = "BOOKINGS" )
+@Table(name = "BOOKINGS")
 public class Booking {
     @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY )
-    @Column( name = "ID" )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
     private Integer id;
-    @Column( name = "START_DATE", nullable = false )
+    @Column(name = "START_DATE", nullable = false)
     LocalDateTime start;
-    @Column( name = "END_DATE", nullable = false )
+    @Column(name = "END_DATE", nullable = false)
     LocalDateTime end;
-    @ManyToOne( fetch = FetchType.LAZY )
-    @JoinColumn( name = "ITEM.ID" )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ITEM.ID")
     Item item;
-    @ManyToOne( fetch = FetchType.LAZY )
-    @JoinColumn( name = "BOOKER_ID" )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "BOOKER_ID")
     User booker;
-    @Column( name = "STATUS", nullable = false )
+    @Column(name = "STATUS", nullable = false)
     String status;
 
     @Override
