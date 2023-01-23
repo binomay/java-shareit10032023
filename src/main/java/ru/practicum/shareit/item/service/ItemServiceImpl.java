@@ -103,7 +103,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public OutputCommentDto addCommentToItem(InputCommentDto commentDto) {
-        Comment comment = InputDtoToComment(commentDto);
+        Comment comment = inputDtoToComment(commentDto);
         checkComment(comment);
         return commentToOutputDto(commentRepository.save(comment));
     }
@@ -184,7 +184,7 @@ public class ItemServiceImpl implements ItemService {
         return outItemDto;
     }
 
-    private Comment InputDtoToComment(InputCommentDto commentDto) {
+    private Comment inputDtoToComment(InputCommentDto commentDto) {
         Comment comment = new Comment();
         comment.setId(commentDto.getId());
         comment.setText(commentDto.getText());

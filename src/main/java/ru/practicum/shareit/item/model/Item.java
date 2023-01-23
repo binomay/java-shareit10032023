@@ -9,25 +9,25 @@ import javax.persistence.*;
 @Getter
 @Setter
 @Entity
-@Table( name = "ITEMS" )
+@Table(name = "ITEMS")
 public class Item {
-    @ManyToOne( fetch = FetchType.LAZY )
-    @JoinColumn( name = "OWNER_ID" )
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "OWNER_ID")
     User owner;
     @Id
-    @Column( name = "ID" )
+    @Column(name = "ID")
     private Integer id;
-    @Column( name = "NAME", nullable = false, length = 50 )
+    @Column(name = "NAME", nullable = false, length = 50)
     private String name;
-    @Column( name = "DESCRIPTION", nullable = false, length = 50 )
+    @Column(name = "DESCRIPTION", nullable = false, length = 50)
     private String description;
-    @Column( name = "IS_AVIALABLE", nullable = false )
+    @Column(name = "IS_AVIALABLE", nullable = false)
     private Boolean available;
     /*
     request — если вещь была создана по запросу другого пользователя, то в этом
     поле будет храниться ссылка на соответствующий запрос.
      */
-    @Column( name = "REQUEST_ID" )
+    @Column(name = "REQUEST_ID")
     private Integer request;
 
     @Override

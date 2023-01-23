@@ -13,6 +13,7 @@ public class ItemMapper {
         itemDto.setRequest(item.getRequest());
         return itemDto;
     }
+
     public static ItemShortDto itemToItemShortDto(Item item) {
         ItemShortDto itemShortDto = new ItemShortDto();
         itemShortDto.setId(item.getId());

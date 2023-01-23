@@ -14,18 +14,16 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
 
     List<Item> findAllByOwnerOrderById(User owner);
 
-    @Query( nativeQuery = true, value = "SELECT * FROM ITEMS " +
+    @Query(nativeQuery = true, value = "SELECT * FROM ITEMS " +
             "WHERE (UPPER(NAME) LIKE '%' ||  ?1 || '%' OR " +
             "UPPER(DESCRIPTION) LIKE '%' ||  ?1 || '%') AND " +
-            "IS_AVIALABLE = TRUE"
-    )
+            "IS_AVIALABLE = TRUE")
     List<Item> contextSearch(String context);
 
-    @Query( nativeQuery = true, value = "SELECT * " +
+    @Query(nativeQuery = true, value = "SELECT * " +
             "FROM items i, bookings b WHERE" +
             " i.id = ?1 AND i.id = b.item_id AND " +
-            "b.status = 'APPROVED' AND B.end_date < ?2"
-    )
+            "b.status = 'APPROVED' AND B.end_date < ?2")
     List<Item> getItemsWasCompleteBookingByUser(Integer itemId, LocalDateTime dateTime);
 
 }

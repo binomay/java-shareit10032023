@@ -15,30 +15,30 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity( name = "Comment" )
-@Table( name = "COMMENTS" )
+@Entity(name = "Comment")
+@Table(name = "COMMENTS")
 public class Comment {
     @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY )
-    @Column( name = "id", nullable = false )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Size( max = 50 )
+    @Size(max = 50)
     @NotNull
-    @Column( name = "text", nullable = false, length = 50 )
+    @Column(name = "text", nullable = false, length = 50)
     private String text;
 
     @NotNull
-    @ManyToOne( fetch = FetchType.LAZY, optional = false )
-    @JoinColumn( name = "item_id", nullable = false )
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
     @NotNull
-    @ManyToOne( fetch = FetchType.LAZY, optional = false )
-    @JoinColumn( name = "author_id", nullable = false )
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    @Column( name = "created" )
+    @Column(name = "created")
     private LocalDateTime created;
 
     @Override
