@@ -15,8 +15,8 @@ public class InMemoryItemStorage implements ItemStorage {
     @Override
     public Item createItem(Item item) {
         itemList.put(item.getId(), item);
-        if (usersItems.containsKey(item.getOwner())) {
-            usersItems.get(item.getOwner()).add(item.getId());
+        if (usersItems.containsKey(item.getOwner().getId())) {
+            usersItems.get(item.getOwner().getId()).add(item.getId());
         } else {
             HashSet<Integer> tmpSet = new HashSet<>();
             tmpSet.add(item.getId());
