@@ -12,14 +12,14 @@ import javax.persistence.Table;
 @Getter
 @Setter
 @Entity
-@Table( name = "USERS" )
+@Table(name = "USERS")
 public class User {
     @Id
-    @Column( name = "ID" )
+    @Column(name = "ID")
     private Integer id;
-    @Column( name = "NAME", nullable = false, length = 50 )
+    @Column(name = "NAME", nullable = false, length = 50)
     private String name;
-    @Column( name = "EMAIL", nullable = false, length = 50, unique = true )
+    @Column(name = "EMAIL", nullable = false, length = 50, unique = true)
     private String email;
 
     @Override
