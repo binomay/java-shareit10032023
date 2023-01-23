@@ -38,7 +38,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public ItemDto createItem(@RequestBody @Valid ItemDto itemDto, @RequestHeader( value = "X-Sharer-User-Id") Integer userId) {
+    public ItemDto createItem(@RequestBody @Valid ItemDto itemDto, @RequestHeader(value = "X-Sharer-User-Id") Integer userId) {
         itemDto.setOwner(userId);
         return itemService.createItem(itemDto);
     }
@@ -46,7 +46,7 @@ public class ItemController {
     @PatchMapping("/{itemId}")
     public ItemDto updateItem(@RequestBody ItemDto itemDto,
                               @PathVariable Integer itemId,
-                              @RequestHeader( value = "X-Sharer-User-Id") Integer ownerId) {
+                              @RequestHeader(value = "X-Sharer-User-Id") Integer ownerId) {
         itemDto.setOwner(ownerId);
         itemDto.setId(itemId);
         return itemService.updateItem(itemDto);
@@ -55,7 +55,7 @@ public class ItemController {
     @PostMapping("/{itemId}/comment")
     public OutputCommentDto addComment(@RequestBody @Valid InputCommentDto commentDto,
                                        @PathVariable Integer itemId,
-                                       @RequestHeader( value = "X-Sharer-User-Id") Integer authorId) {
+                                       @RequestHeader(value = "X-Sharer-User-Id") Integer authorId) {
         commentDto.setItemId(itemId);
         commentDto.setAuthorId(authorId);
         return itemService.addCommentToItem(commentDto);
