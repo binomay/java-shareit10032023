@@ -39,7 +39,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public OutputBookingDto createBooking(InputBookingDto inputBookingDto) {
-        Booking booking = DtoToBooking(inputBookingDto);
+        Booking booking = dtoToBooking(inputBookingDto);
         checkBooking(booking);
         booking.setStatus(BookingStatus.WAITING.getName());
         return BookingMapper.toOutput(bookingRepositary.save(booking));
@@ -133,7 +133,7 @@ public class BookingServiceImpl implements BookingService {
         return bookList.stream().map(BookingMapper::toOutput).collect(Collectors.toList());
     }
 
-    private Booking DtoToBooking(InputBookingDto inputBookingDto) {
+    private Booking dtoToBooking(InputBookingDto inputBookingDto) {
         Booking booking = new Booking();
         booking.setId(inputBookingDto.getId());
         booking.setStart(inputBookingDto.getStart());

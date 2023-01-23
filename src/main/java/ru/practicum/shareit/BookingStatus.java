@@ -6,10 +6,12 @@ public enum BookingStatus {
     APPROVED("APPROVED"),
     REJECTED("REJECTED");
     private final String  name;
+
     BookingStatus(String name) {
         this.name = name;
     }
-    public String getName(){
+
+    public String getName() {
         return name;
     }
 }
