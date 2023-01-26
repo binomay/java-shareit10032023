@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.repositary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -22,34 +23,30 @@ public interface BookingRepositary extends JpaRepository<Booking, Integer> {
 
     List<Booking> findBookingByBookerAndStartAfterOrderByStartDesc(User user, LocalDateTime dateTime);
 
-    @Query(nativeQuery = true, value = "SELECT B.* FROM BOOKINGS B, ITEMS I " +
-            "WHERE I.owner_id = ?1 AND B.item_id = I.id AND B.STATUS = ?2 ORDER BY B.START_DATE DESC")
+    @Query(value = "SELECT B FROM Booking B WHERE B.item.owner.id = ?1 AND B.status = ?2 order by B.start desc")
     List<Booking> getBookingsForOwnerByStatus(Integer ownerId, String status);
 
-    @Query(nativeQuery = true, value = "SELECT B.* FROM BOOKINGS B, ITEMS I " +
-            "WHERE I.owner_id = ?1 AND B.item_id = I.id  ORDER BY B.START_DATE DESC")
+    @Query(value = "SELECT B FROM Booking B WHERE B.item.owner.id = ?1 ORDER BY B.start DESC")
     List<Booking> getAllBookingsForOwner(Integer ownerId);
 
-    @Query(nativeQuery = true, value = "SELECT B.* FROM BOOKINGS B, ITEMS I " +
-            "WHERE I.owner_id = ?1 AND B.item_id = I.id  AND " +
-            "B.START_DATE < ?2 AND B.END_DATE > ?3 " +
-            "ORDER BY B.START_DATE DESC")
-    List<Booking> getCurrenBookingForOwner(Integer ownerId, LocalDateTime date1, LocalDateTime date2);
+    @Query(value = "SELECT B FROM Booking B WHERE B.item.owner.id = ?1 AND B.start < ?2 AND B.end > ?3 ORDER BY B.start DESC")
+    List<Booking> getCurrentBookingForOwner(Integer ownerId, LocalDateTime date1, LocalDateTime date2);
 
-    @Query(nativeQuery = true, value = "SELECT B.* FROM BOOKINGS B, ITEMS I " +
-            "WHERE I.owner_id = ?1 AND B.item_id = I.id  AND " +
-            "B.END_DATE < ?2 ORDER BY B.START_DATE DESC")
+    @Query(value = "SELECT B FROM Booking B WHERE B.item.owner.id = ?1 AND B.end < ?2 ORDER BY B.start DESC")
     List<Booking> getPastBookingForOwner(Integer ownerId, LocalDateTime date);
 
-    @Query(nativeQuery = true, value = "SELECT B.* FROM BOOKINGS B, ITEMS I " +
-            "WHERE I.owner_id = ?1 AND B.item_id = I.id  AND " +
-            "B.START_DATE > ?2 ORDER BY B.START_DATE DESC")
+    @Query(value = "SELECT B FROM Booking B WHERE B.item.owner.id = ?1 AND B.start > ?2 ORDER BY B.start DESC")
     List<Booking> getFutureBookingForOwner(Integer ownerId, LocalDateTime date);
 
-    @Query(nativeQuery = true, value = "SELECT B.* FROM bookings B, items I WHERE " +
-            "I.id = ?1 AND I.id = B.item_id AND " +
-            "B.STATUS =  'APPROVED' AND " +
-            "I.owner_id = ?2  " +
-            "ORDER BY end_date")
+    @Query(value = "SELECT B FROM Booking B WHERE B.item.id = ?1 AND B.status = 'APPROVED' AND B.item.owner.id = ?2 " +
+            "ORDER BY B.end")
     List<Booking> getBookingsByItemOwner(Integer itemId, Integer userId);
+
+    List<Booking> findAllByItemInAndStatusOrderByStart(List<Item> itemList, String status);
+
+    @Query(value = "SELECT B FROM Booking B WHERE B.item.id = ?1 AND " +
+            " ((B.start > ?2 AND B.start < ?3) OR (B.end > ?2 AND B.end < ?3)) AND " +
+            "B.status <> 'REJECTED'")
+    List<Booking> getBookingWithSameDates(Integer itemId, LocalDateTime startDate, LocalDateTime endDate);
+
 }

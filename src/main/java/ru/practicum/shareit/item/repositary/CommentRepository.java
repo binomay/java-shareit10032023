@@ -7,6 +7,6 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
-    List<Comment> findCommentsByItemOrderByCreatedDesc(Item item);
+    List<Comment> findAllByItemInOrderByCreatedDesc(List<Item> itemList);
 
 }

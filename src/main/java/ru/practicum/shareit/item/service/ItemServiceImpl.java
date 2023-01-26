@@ -3,7 +3,8 @@ package ru.practicum.shareit.item.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.BookingStatus;
+import ru.practicum.shareit.booking.dto.MagicBookings;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repositary.BookingRepositary;
 import ru.practicum.shareit.exceptions.ResourceNotFoundException;
@@ -20,7 +21,9 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,34 +47,10 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemOutDtoWithDate getItemDtoById(Integer itemId, Integer userId) {
         Item item = getItemById(itemId);
-        return toItemOutDtoWithDate(item, userId);
-    }
-
-    private List<Booking> getLastAndNextBookList(Integer itemId, Integer userId) {
+        List<Comment> commentList = commentRepository.findAllByItemInOrderByCreatedDesc(List.of(item));
         List<Booking> bookingList = bookingRepositary.getBookingsByItemOwner(itemId, userId);
-        LocalDateTime now = LocalDateTime.now();
-        List<Booking> outList = new ArrayList<>();
-        if (bookingList.size() == 0) {
-            return outList;
-        }
-        Booking prevBooking = bookingList.get(0);
-        if (prevBooking.getStart().isAfter(now)) {
-            return outList;
-        }
-        if (bookingList.get(bookingList.size() - 1).getStart().isBefore(now)) {
-            outList.add(bookingList.get(bookingList.size() - 1));
-            return outList;
-        }
-        Booking currBooking;
-        for (int i = 1; i < bookingList.size(); i++) {
-            currBooking = bookingList.get(i);
-            if (currBooking.getStart().isAfter(now)) {
-                outList.add(prevBooking);
-                outList.add(currBooking);
-                return outList;
-            }
-        }
-        return null;
+        MagicBookings magicBookings = getMagicBookings(bookingList);
+        return ItemMapper.toItemOutDtoWithDate(item, commentList, magicBookings);
     }
 
     @Override
@@ -87,8 +66,82 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemOutDtoWithDate> getUsersItems(Integer ownerId) {
+        List<ItemOutDtoWithDate> outList = new ArrayList<>();
         List<Item> itemList = itemRepository.findAllByOwnerOrderById(userService.getUserById(ownerId));
-        return itemList.stream().map(x -> toItemOutDtoWithDate(x, ownerId)).collect(Collectors.toList());
+        Map<Integer, List<Comment>> commentMap = getCommentsMap(itemList);
+        Map<Integer, List<Booking>> bookingMap = getBookingMap(itemList);
+        for(Item item : itemList) {
+            List<Comment> commentList = commentMap.get(item.getId());
+            if(commentList == null) {
+                commentList = new ArrayList<>();
+            }
+            List<Booking> bookingList = bookingMap.get(item.getId());
+            if(bookingList == null) {
+                bookingList = new ArrayList<>();
+            }
+            MagicBookings magicBookings = getMagicBookings(bookingList);
+            outList.add(ItemMapper.toItemOutDtoWithDate(item, commentList, magicBookings));
+        }
+        return outList;
+    }
+
+    private MagicBookings getMagicBookings(List<Booking> bookingList) {
+        //букинги отсортированы в порядке возрастания даты начала....
+        //Последнее бронирование таково, что началось в самом ближайшем прошлом. А следующее, которое начнется в самом ближайшем будущем.
+        MagicBookings magicBookings = new MagicBookings();
+        LocalDateTime now = LocalDateTime.now();
+        if(bookingList.size() == 0) {
+            magicBookings.setLastBooking(null);
+            magicBookings.setNextBooking(null);
+        } else {
+            for(Booking booking : bookingList) {
+                if(booking.getStart().isBefore(now)) {
+                    magicBookings.setLastBooking(booking);
+                }
+                if(booking.getStart().isAfter(now)) {
+                    magicBookings.setNextBooking(booking);
+                    break;
+                }
+            }
+        }
+        return magicBookings;
+    }
+
+    private Map<Integer, List<Booking>> getBookingMap(List<Item> itemList) {
+        List<Booking> bookingList = bookingRepositary.findAllByItemInAndStatusOrderByStart(itemList,
+                BookingStatus.APPROVED.getName());
+        Map<Integer, List<Booking>> outMap = new HashMap<>();
+        List<Booking> currList;
+        Integer currItemId;
+        for(Booking booking : bookingList) {
+            currItemId = booking.getItem().getId();
+            if(outMap.containsKey(currItemId)) {
+                currList = outMap.get(currItemId);
+            } else {
+                currList = new ArrayList<>();
+            }
+            currList.add(booking);
+            outMap.put(currItemId, currList);
+        }
+        return outMap;
+    }
+
+    private Map<Integer, List<Comment>>  getCommentsMap(List<Item> itemList) {
+        List<Comment> commentList = commentRepository.findAllByItemInOrderByCreatedDesc(itemList);
+        Map<Integer, List<Comment>> outMap = new HashMap<>();
+        List<Comment> currList;
+        Integer currItemId;
+        for(Comment comment: commentList) {
+            currItemId = comment.getItem().getId();
+            if(outMap.containsKey(currItemId)) {
+                currList = outMap.get(currItemId);
+            } else {
+                currList = new ArrayList<>();
+            }
+            currList.add(comment);
+            outMap.put(currItemId, currList);
+        }
+        return outMap;
     }
 
     @Override
@@ -97,20 +150,23 @@ public class ItemServiceImpl implements ItemService {
         if (context.isEmpty()) {
             return new ArrayList<>();
         } else {
-            return itemRepository.contextSearch(upperContext).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+            //return itemRepository.contextSearch(upperContext).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+        return itemRepository.contextSearch(upperContext).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
         }
     }
 
     @Override
     public OutputCommentDto addCommentToItem(InputCommentDto commentDto) {
-        Comment comment = inputDtoToComment(commentDto);
+        Item item = getItemById(commentDto.getItemId());
+        User author = userService.getUserById(commentDto.getAuthorId());
+        Comment comment = ItemMapper.inputDtoToComment(commentDto, item, author);
         checkComment(comment);
-        return commentToOutputDto(commentRepository.save(comment));
+        return ItemMapper.commentToOutputDto(commentRepository.save(comment));
     }
 
     @Override
     public ItemDto createItem(ItemDto itemDto) {
-        Item item = toItem(itemDto);
+        Item item = ItemMapper.toItem(itemDto, userService.getUserById(itemDto.getOwner()));
         checkAvailable(item);
         item.setId(ItemNumerator.getCurrenItemId());
         return ItemMapper.toItemDto(itemRepository.save(item));
@@ -118,7 +174,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(ItemDto itemDto) {
-        Item item = toItem(itemDto);
+        Item item = ItemMapper.toItem(itemDto, userService.getUserById(itemDto.getOwner()));
         Item oldItem = getItemById(item.getId());
         //отредактировать вещь может только ее владелец
         checkOwner(item.getOwner(), oldItem.getOwner());
@@ -135,18 +191,6 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toItemDto(itemRepository.save(oldItem));
     }
 
-    private Item toItem(ItemDto itemDto) {
-        Item item = new Item();
-        item.setId(itemDto.getId());
-        item.setName(itemDto.getName());
-        item.setDescription(itemDto.getDescription());
-        User owner = userService.getUserById(itemDto.getOwner());
-        item.setOwner(owner);
-        item.setAvailable(itemDto.getAvailable());
-        item.setRequest(itemDto.getRequest());
-        return item;
-    }
-
     private void checkAvailable(Item item) {
         if (!item.getAvailable()) {
             throw new ValidationException("При создании Item не может быть недоступным!");
@@ -159,51 +203,6 @@ public class ItemServiceImpl implements ItemService {
         } else if (!newOwner.equals(oldOwner)) {
             throw new RightsException("Редактировать вещь может только ее вдладелец");
         }
-    }
-
-    private ItemOutDtoWithDate toItemOutDtoWithDate(Item item, Integer userId) {
-        ItemOutDtoWithDate outItemDto = new ItemOutDtoWithDate();
-        outItemDto.setId(item.getId());
-        outItemDto.setName(item.getName());
-        outItemDto.setDescription(item.getDescription());
-        outItemDto.setAvailable(item.getAvailable());
-        List<OutputCommentDto> commentDtoList = commentRepository.findCommentsByItemOrderByCreatedDesc(item)
-                .stream().map(this::commentToOutputDto).collect(Collectors.toList());
-        outItemDto.setComments(commentDtoList);
-        List<Booking> bookingList = getLastAndNextBookList(item.getId(), userId);
-        if (bookingList.size() == 0) {
-            outItemDto.setNextBooking(null);
-            outItemDto.setLastBooking(null);
-        } else if (bookingList.size() == 1) {
-            outItemDto.setLastBooking(BookingMapper.toBookDtoForItem(bookingList.get(0)));
-            outItemDto.setNextBooking(null);
-        } else {
-            outItemDto.setLastBooking(BookingMapper.toBookDtoForItem(bookingList.get(0)));
-            outItemDto.setNextBooking(BookingMapper.toBookDtoForItem(bookingList.get(1)));
-        }
-        return outItemDto;
-    }
-
-    private Comment inputDtoToComment(InputCommentDto commentDto) {
-        Comment comment = new Comment();
-        comment.setId(commentDto.getId());
-        comment.setText(commentDto.getText());
-        Item item = getItemById(commentDto.getItemId());
-        comment.setItem(item);
-        User author = userService.getUserById(commentDto.getAuthorId());
-        comment.setAuthor(author);
-        comment.setCreated(LocalDateTime.now());
-        return comment;
-    }
-
-    private OutputCommentDto commentToOutputDto(Comment comment) {
-        OutputCommentDto outDto = new OutputCommentDto();
-        outDto.setId(comment.getId());
-        outDto.setText(comment.getText());
-        outDto.setItemId(comment.getItem().getId());
-        outDto.setAuthorName(comment.getAuthor().getName());
-        outDto.setCreated(comment.getCreated());
-        return outDto;
     }
 
     private void checkComment(Comment comment) {

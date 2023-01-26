@@ -39,7 +39,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public OutputBookingDto createBooking(InputBookingDto inputBookingDto) {
-        Booking booking = dtoToBooking(inputBookingDto);
+        Item item = itemService.getItemById(inputBookingDto.getItemId());
+        User booker = userService.getUserById(inputBookingDto.getBookerId());
+        Booking booking = BookingMapper.dtoToBooking(inputBookingDto, item, booker);
         checkBooking(booking);
         booking.setStatus(BookingStatus.WAITING.getName());
         return BookingMapper.toOutput(bookingRepositary.save(booking));
@@ -115,7 +117,7 @@ public class BookingServiceImpl implements BookingService {
                 break;
             case "CURRENT":
                 LocalDateTime dateTime = LocalDateTime.now();
-                bookList = bookingRepositary.getCurrenBookingForOwner(userId, dateTime, dateTime);
+                bookList = bookingRepositary.getCurrentBookingForOwner(userId, dateTime, dateTime);
                 break;
             case "PAST":
                 LocalDateTime dateTime1 = LocalDateTime.now();
@@ -133,19 +135,6 @@ public class BookingServiceImpl implements BookingService {
         return bookList.stream().map(BookingMapper::toOutput).collect(Collectors.toList());
     }
 
-    private Booking dtoToBooking(InputBookingDto inputBookingDto) {
-        Booking booking = new Booking();
-        booking.setId(inputBookingDto.getId());
-        booking.setStart(inputBookingDto.getStart());
-        booking.setEnd(inputBookingDto.getEnd());
-        booking.setStatus(inputBookingDto.getStatus());
-        User booker = userService.getUserById(inputBookingDto.getBookerId());
-        booking.setBooker(booker);
-        Item item = itemService.getItemById(inputBookingDto.getItemId());
-        booking.setItem(item);
-        return booking;
-    }
-
     private void checkBooking(Booking booking) {
         if (!booking.getItem().getAvailable()) {
             throw new ValidationException("Item недоступен");
@@ -154,11 +143,17 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException("Дата начала позже даты окончания");
         } else if (booking.getStart().isBefore(LocalDateTime.now())) {
             throw new ValidationException("Дата начала не может быть в прошлом");
-        } else if (booking.getEnd().isBefore(LocalDateTime.now())) {
-            throw new ValidationException("Дата окончания не может быть в прошлом");
         }
         if (Objects.equals(booking.getBooker().getId(), booking.getItem().getOwner().getId())) {
             throw new ResourceNotFoundException("Владелец не может сам у себя забронировать. Это глупо");
+        }
+        checkDates(booking);
+    }
+
+    private void checkDates(Booking booking) {
+        List<Booking> bookingList = bookingRepositary.getBookingWithSameDates(booking.getItem().getId(), booking.getStart(), booking.getEnd());
+        if(bookingList.size() != 0) {
+            throw new ResourceNotFoundException("Есть букирование, которое пересекается по времени! " + bookingList.get(0).getId());
         }
     }
 
@@ -178,8 +173,8 @@ public class BookingServiceImpl implements BookingService {
             log.warn(msg);
             throw new ResourceNotFoundException(msg);
         }
-        if (booking.getStatus().equals(BookingStatus.APPROVED.getName())) {
-            String msg = "Нельзя менять статус потвержденного бронирования";
+        if (!booking.getStatus().equals(BookingStatus.WAITING.getName())) {
+            String msg = "Статус можно поменять только для бронирований, ожидаюйщих подтверждения!";
             log.warn(msg);
             throw new ValidationException(msg);
         }

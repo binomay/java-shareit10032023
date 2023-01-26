@@ -1,6 +1,14 @@
 package ru.practicum.shareit.item.dto;
 
+import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.booking.dto.MagicBookings;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ItemMapper {
     public static ItemDto toItemDto(Item item) {
@@ -19,5 +27,51 @@ public class ItemMapper {
         itemShortDto.setId(item.getId());
         itemShortDto.setName(item.getName());
         return itemShortDto;
+    }
+
+    public static ItemOutDtoWithDate toItemOutDtoWithDate(Item item,
+                                                    List<Comment> commentList,
+                                                    MagicBookings magicBookings) {
+        ItemOutDtoWithDate outItemDto = new ItemOutDtoWithDate();
+        outItemDto.setId(item.getId());
+        outItemDto.setName(item.getName());
+        outItemDto.setDescription(item.getDescription());
+        outItemDto.setAvailable(item.getAvailable());
+        List<OutputCommentDto> commentDtoList = commentList.stream().map(ItemMapper::commentToOutputDto).collect(Collectors.toList());
+        outItemDto.setComments(commentDtoList);
+        outItemDto.setLastBooking(BookingMapper.toBookDtoForItem(magicBookings.getLastBooking()));
+        outItemDto.setNextBooking(BookingMapper.toBookDtoForItem(magicBookings.getNextBooking()));
+        return outItemDto;
+    }
+
+    public static OutputCommentDto commentToOutputDto(Comment comment) {
+        OutputCommentDto outDto = new OutputCommentDto();
+        outDto.setId(comment.getId());
+        outDto.setText(comment.getText());
+        outDto.setItemId(comment.getItem().getId());
+        outDto.setAuthorName(comment.getAuthor().getName());
+        outDto.setCreated(comment.getCreated());
+        return outDto;
+    }
+
+    public static  Item toItem(ItemDto itemDto, User owner) {
+        Item item = new Item();
+        item.setId(itemDto.getId());
+        item.setName(itemDto.getName());
+        item.setDescription(itemDto.getDescription());
+        item.setOwner(owner);
+        item.setAvailable(itemDto.getAvailable());
+        item.setRequest(itemDto.getRequest());
+        return item;
+    }
+
+    public static Comment inputDtoToComment(InputCommentDto commentDto, Item item, User author) {
+        Comment comment = new Comment();
+        comment.setId(commentDto.getId());
+        comment.setText(commentDto.getText());
+        comment.setItem(item);
+        comment.setAuthor(author);
+        comment.setCreated(LocalDateTime.now());
+        return comment;
     }
 }

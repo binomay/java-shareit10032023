@@ -20,10 +20,7 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
             "IS_AVIALABLE = TRUE")
     List<Item> contextSearch(String context);
 
-    @Query(nativeQuery = true, value = "SELECT * " +
-            "FROM items i, bookings b WHERE" +
-            " i.id = ?1 AND i.id = b.item_id AND " +
-            "b.status = 'APPROVED' AND B.end_date < ?2")
+    @Query(value = "SELECT B.item FROM Booking B WHERE B.item.id = ?1 AND B.status = 'APPROVED' AND B.end <?2")
     List<Item> getItemsWasCompleteBookingByUser(Integer itemId, LocalDateTime dateTime);
 
 }
