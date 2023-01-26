@@ -152,7 +152,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void checkDates(Booking booking) {
         List<Booking> bookingList = bookingRepositary.getBookingWithSameDates(booking.getItem().getId(), booking.getStart(), booking.getEnd());
-        if(bookingList.size() != 0) {
+        if (bookingList.size() != 0) {
             throw new ResourceNotFoundException("Есть букирование, которое пересекается по времени! " + bookingList.get(0).getId());
         }
     }

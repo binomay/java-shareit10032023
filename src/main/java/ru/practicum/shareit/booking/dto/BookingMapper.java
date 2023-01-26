@@ -19,7 +19,7 @@ public class BookingMapper {
     }
 
     public static BookingDtoForUserItemsOutput toBookDtoForItem(Booking booking) {
-        if(booking == null) {
+        if (booking == null) {
             return null;
         }
         BookingDtoForUserItemsOutput out = new BookingDtoForUserItemsOutput();

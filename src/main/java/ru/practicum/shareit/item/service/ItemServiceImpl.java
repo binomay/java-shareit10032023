@@ -70,13 +70,13 @@ public class ItemServiceImpl implements ItemService {
         List<Item> itemList = itemRepository.findAllByOwnerOrderById(userService.getUserById(ownerId));
         Map<Integer, List<Comment>> commentMap = getCommentsMap(itemList);
         Map<Integer, List<Booking>> bookingMap = getBookingMap(itemList);
-        for(Item item : itemList) {
+        for (Item item : itemList) {
             List<Comment> commentList = commentMap.get(item.getId());
-            if(commentList == null) {
+            if (commentList == null) {
                 commentList = new ArrayList<>();
             }
             List<Booking> bookingList = bookingMap.get(item.getId());
-            if(bookingList == null) {
+            if (bookingList == null) {
                 bookingList = new ArrayList<>();
             }
             MagicBookings magicBookings = getMagicBookings(bookingList);
@@ -90,15 +90,15 @@ public class ItemServiceImpl implements ItemService {
         //Последнее бронирование таково, что началось в самом ближайшем прошлом. А следующее, которое начнется в самом ближайшем будущем.
         MagicBookings magicBookings = new MagicBookings();
         LocalDateTime now = LocalDateTime.now();
-        if(bookingList.size() == 0) {
+        if (bookingList.size() == 0) {
             magicBookings.setLastBooking(null);
             magicBookings.setNextBooking(null);
         } else {
-            for(Booking booking : bookingList) {
-                if(booking.getStart().isBefore(now)) {
+            for (Booking booking : bookingList) {
+                if (booking.getStart().isBefore(now)) {
                     magicBookings.setLastBooking(booking);
                 }
-                if(booking.getStart().isAfter(now)) {
+                if (booking.getStart().isAfter(now)) {
                     magicBookings.setNextBooking(booking);
                     break;
                 }
@@ -113,9 +113,9 @@ public class ItemServiceImpl implements ItemService {
         Map<Integer, List<Booking>> outMap = new HashMap<>();
         List<Booking> currList;
         Integer currItemId;
-        for(Booking booking : bookingList) {
+        for (Booking booking : bookingList) {
             currItemId = booking.getItem().getId();
-            if(outMap.containsKey(currItemId)) {
+            if (outMap.containsKey(currItemId)) {
                 currList = outMap.get(currItemId);
             } else {
                 currList = new ArrayList<>();
@@ -131,9 +131,9 @@ public class ItemServiceImpl implements ItemService {
         Map<Integer, List<Comment>> outMap = new HashMap<>();
         List<Comment> currList;
         Integer currItemId;
-        for(Comment comment: commentList) {
+        for (Comment comment: commentList) {
             currItemId = comment.getItem().getId();
-            if(outMap.containsKey(currItemId)) {
+            if (outMap.containsKey(currItemId)) {
                 currList = outMap.get(currItemId);
             } else {
                 currList = new ArrayList<>();
