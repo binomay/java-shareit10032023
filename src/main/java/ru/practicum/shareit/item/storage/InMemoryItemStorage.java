@@ -9,18 +9,18 @@ import java.util.stream.Collectors;
 @Component
 public class InMemoryItemStorage implements ItemStorage {
 
-    private HashMap<Integer, Item> itemList = new HashMap<>();
-    private HashMap<Integer, HashSet<Integer>> usersItems = new HashMap<>();
+    private final HashMap<Integer, Item> itemList = new HashMap<>();
+    private final HashMap<Integer, HashSet<Integer>> usersItems = new HashMap<>();
 
     @Override
     public Item createItem(Item item) {
         itemList.put(item.getId(), item);
-        if (usersItems.containsKey(item.getOwner())) {
-            usersItems.get(item.getOwner()).add(item.getId());
+        if (usersItems.containsKey(item.getOwner().getId())) {
+            usersItems.get(item.getOwner().getId()).add(item.getId());
         } else {
             HashSet<Integer> tmpSet = new HashSet<>();
             tmpSet.add(item.getId());
-            usersItems.put(item.getOwner(), tmpSet);
+            usersItems.put(item.getOwner().getId(), tmpSet);
         }
         return item;
     }

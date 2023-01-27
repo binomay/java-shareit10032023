@@ -1,5 +1,6 @@
 package ru.practicum.shareit.exceptions;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,8 +15,8 @@ public class ErrorHandler {
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
     public Map<String, String> handleValidateException(final ValidationException e) {
         return Map.of(
-                "error", "Ошибка при выполнении запроса: " + ValidationException.class.getSimpleName(),
-                "errorMessage", e.getMessage()
+                "errorMessage", "Ошибка при выполнении запроса: " + ValidationException.class.getSimpleName(),
+                "error", e.getMessage()
         );
     }
 
@@ -30,9 +31,9 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(value = HttpStatus.CONFLICT)
-    public Map<String,String> handleUniqueConstraint(UniqueConstraintException e) {
+    public Map<String,String> handleUniqueConstraint(ConstraintViolationException e) {
         return Map.of(
-                "error", "Ошибка при выполнении запроса: " + UniqueConstraintException.class.getSimpleName(),
+                "error", "Ошибка при выполнении запроса: " + ConstraintViolationException.class.getSimpleName(),
                 "errorMessage", e.getMessage()
         );
     }
