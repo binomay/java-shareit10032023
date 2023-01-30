@@ -8,8 +8,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exceptions.ResourceNotFoundException;
+import ru.practicum.shareit.exceptions.RightsException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repositary.ItemRepository;
 import ru.practicum.shareit.item.service.ItemServiceImpl;
@@ -19,8 +21,7 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith( MockitoExtension.class)
@@ -100,10 +101,12 @@ class ItemServiceImplTest {
 
     @Test
     void getUsersItems() {
+
     }
 
     @Test
     void getItemsByContextSearch() {
+
     }
 
     @Test
@@ -143,6 +146,7 @@ class ItemServiceImplTest {
     void createItem_whenAvialabel_thanSave() {
         Integer itemId = 1;
         Integer ownerId  = 1;
+        User owner = createOneUser(ownerId);
         Item expectedItem = createOneItem(itemId, ownerId);
         ItemDto expectedItemDto = createOneItemDto(itemId, ownerId);
         expectedItemDto.setRequestId(null);
@@ -187,10 +191,50 @@ class ItemServiceImplTest {
                 () -> itemService.updateItem(expectedItemDto));
     }
 
-    //TODO
     @Test
     void updateItem_whenNotOwnerEdit_thanNotSaved() {
-            
+        Integer itemId = 1;
+        Integer oldOwnerId  = 1;
+        Integer newOwnerId = 2;
+        ItemDto oldItemDto = createOneItemDto(itemId, oldOwnerId);
+        Item oldItem = createOneItem(itemId, oldOwnerId);
+        ItemDto newItemDto = createOneItemDto(itemId, newOwnerId);
+        newItemDto.setRequestId(null);
+
+        when(itemRepository.getItemById(itemId))
+                .thenReturn(Optional.of(oldItem));
+
+        assertThrows(RightsException.class,
+                () -> itemService.updateItem(newItemDto));
+    }
+
+    @Test
+    void updateItem_whenAllOk_thenSave() {
+        Integer itemId = 1;
+        Integer ownerId  = 1;
+        User owner = createOneUser(ownerId);
+        ItemDto oldItemDto = createOneItemDto(itemId, ownerId);
+        oldItemDto.setRequestId(null);
+        Item oldItem = createOneItem(itemId, ownerId);
+        oldItem.setRequest(null);
+        ItemDto newItemDto = createSecondItemDto(itemId, ownerId);
+        newItemDto.setRequestId(null);
+        Item newItem = createOneItem(itemId, ownerId);
+        newItem.setAvailable(false);
+        newItem.setRequest(null);
+        doReturn(Optional.of(oldItem)).when (itemRepository)
+                .getItemById(itemId);
+        doReturn(owner).when(userService).getUserById(ownerId);
+        doReturn(newItem).when(itemRepository).save(newItem);
+
+        ItemDto actualItemDto = itemService.updateItem(newItemDto);
+        verify(itemRepository).save(argumentItemCaptor.capture());
+        Item actualItem = argumentItemCaptor.getValue();
+
+        assertEquals(actualItemDto.getName(), newItem.getName());
+        assertEquals(actualItemDto.getDescription(), newItem.getDescription());
+        assertEquals(actualItem.getAvailable(), newItem.getAvailable());
+        verify(itemRepository).save(newItem);
     }
     private Item createOneItem(Integer itemId, Integer ownerId) {
         Item item = new Item();
@@ -210,6 +254,16 @@ class ItemServiceImplTest {
         item.setName("Первая вещь");
         item.setDescription("Вещь номер один");
         item.setAvailable(true);
+        item.setOwner(ownerId);
+        return item;
+    }
+
+    private ItemDto createSecondItemDto(Integer itemId, Integer ownerId) {
+        ItemDto item = new ItemDto();
+        item.setId(itemId);
+        item.setName("Вторая вещь");
+        item.setDescription("Вещь номер два");
+        item.setAvailable(false);
         item.setOwner(ownerId);
         return item;
     }
