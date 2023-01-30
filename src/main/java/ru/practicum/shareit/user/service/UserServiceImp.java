@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.ResourceNotFoundException;
-import ru.practicum.shareit.numerators.UserNumerator;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -47,9 +46,7 @@ public class UserServiceImp implements UserService {
     @Override
     public UserDto createUser(UserDto userDto) {
         User user = UserMapper.toUser(userDto);
-        user.setId(UserNumerator.getCurrentUserId());
         return UserMapper.toUserDto(userRepository.save(user));
-
     }
 
     @Override
@@ -70,6 +67,5 @@ public class UserServiceImp implements UserService {
         }
         return UserMapper.toUserDto(userRepository.save(user));
     }
-
 
 }

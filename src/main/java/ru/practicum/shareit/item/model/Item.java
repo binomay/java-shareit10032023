@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ public class Item {
     @JoinColumn(name = "OWNER_ID")
     User owner;
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Integer id;
     @Column(name = "NAME", nullable = false, length = 50)
@@ -27,8 +29,9 @@ public class Item {
     request — если вещь была создана по запросу другого пользователя, то в этом
     поле будет храниться ссылка на соответствующий запрос.
      */
-    @Column(name = "REQUEST_ID")
-    private Integer request;
+    @ManyToOne
+    @JoinColumn(name = "REQUEST_ID")
+    private ItemRequest request;
 
     @Override
     public boolean equals(Object o) {

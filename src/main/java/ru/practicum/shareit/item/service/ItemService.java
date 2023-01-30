@@ -17,9 +17,9 @@ public interface ItemService {
 
     Item getItemById(Integer itemId);
 
-    List<ItemOutDtoWithDate> getUsersItems(Integer ownerId);
+    List<ItemOutDtoWithDate> getUsersItems(Integer ownerId, Integer from, Integer size);
 
-    List<ItemDto> getItemsByContextSearch(String context);
+    List<ItemDto> getItemsByContextSearch(String context, Integer from, Integer size);
 
     OutputCommentDto addCommentToItem(InputCommentDto commentDto);
 }
