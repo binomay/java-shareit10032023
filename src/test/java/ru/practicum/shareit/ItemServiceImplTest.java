@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-@ExtendWith( MockitoExtension.class )
+@ExtendWith(MockitoExtension.class)
 class ItemServiceImplTest {
 
     @Mock
@@ -216,8 +216,7 @@ class ItemServiceImplTest {
         Item newItem = createOneItem(itemId, ownerId);
         newItem.setAvailable(false);
         newItem.setRequest(null);
-        doReturn(Optional.of(oldItem)).when (itemRepository)
-                .getItemById(itemId);
+        doReturn(Optional.of(oldItem)).when(itemRepository).getItemById(itemId);
         doReturn(owner).when(userService).getUserById(ownerId);
         doReturn(newItem).when(itemRepository).save(newItem);
 
@@ -230,6 +229,7 @@ class ItemServiceImplTest {
         assertEquals(actualItem.getAvailable(), newItem.getAvailable());
         verify(itemRepository).save(newItem);
     }
+
     private Item createOneItem(Integer itemId, Integer ownerId) {
         Item item = new Item();
         item.setId(itemId);

@@ -61,8 +61,8 @@ class UserServiceTest {
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> userService.getUserById(userId));
 
-        assertEquals("Не нашел пользователя с Id = 1", exception.getMessage()
-                ,"Не совпали сообщения об ошибке");
+        assertEquals("Не нашел пользователя с Id = 1", exception.getMessage(),
+                "Не совпали сообщения об ошибке");
     }
 
     @Test
@@ -100,8 +100,7 @@ class UserServiceTest {
     @Test
     void createUser_whenValidationIsOk_thenSave() {
         User userToSave = createOneUser(1);
-        when(userRepository.save(userToSave)).
-                thenReturn(userToSave);
+        when(userRepository.save(userToSave)).thenReturn(userToSave);
 
         UserDto expectedUserDto = userService.createUser(UserMapper.toUserDto(userToSave));
 
@@ -112,8 +111,7 @@ class UserServiceTest {
     @Test
     void createUser_whenNotValid_thenNotSaved() {
         User userToSave = createOneUser(1);
-        when(userRepository.save(userToSave)).
-                thenThrow(ConstraintViolationException.class);
+        when(userRepository.save(userToSave)).thenThrow(ConstraintViolationException.class);
 
         assertThrows(ConstraintViolationException.class,
                 () -> userService.createUser(UserMapper.toUserDto(userToSave)));
