@@ -11,7 +11,6 @@ import ru.practicum.shareit.exceptions.ResourceNotFoundException;
 import ru.practicum.shareit.exceptions.RightsException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repositary.ItemRepository;
 import ru.practicum.shareit.item.service.ItemServiceImpl;
@@ -21,10 +20,11 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-@ExtendWith( MockitoExtension.class)
+@ExtendWith( MockitoExtension.class )
 class ItemServiceImplTest {
 
     @Mock
@@ -43,14 +43,11 @@ class ItemServiceImplTest {
     @Test
     void getItemDtoById_whenItemNotFound_thenResourceNotFoundException() {
         Integer itemId = 1;
-        when(itemRepository.getItemById(itemId))
-                .thenReturn(Optional.empty());
+        when(itemRepository.getItemById(itemId)).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () ->itemService.getItemById(itemId));
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> itemService.getItemById(itemId));
 
-        assertEquals("Не нашел item с Id = 1", exception.getMessage()
-                ,"Не совпали сообщения об ошибке");
+        assertEquals("Не нашел item с Id = 1", exception.getMessage(), "Не совпали сообщения об ошибке");
     }
 
     @Test
@@ -73,14 +70,11 @@ class ItemServiceImplTest {
     @Test
     void getItemById_whenItemNotFound_thenResourceNotFoundException() {
         Integer itemId = 1;
-        when(itemRepository.getItemById(itemId))
-                .thenReturn(Optional.empty());
+        when(itemRepository.getItemById(itemId)).thenReturn(Optional.empty());
 
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () ->itemService.getItemById(itemId));
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> itemService.getItemById(itemId));
 
-        assertEquals("Не нашел item с Id = 1", exception.getMessage()
-                ,"Не совпали сообщения об ошибке");
+        assertEquals("Не нашел item с Id = 1", exception.getMessage(), "Не совпали сообщения об ошибке");
     }
 
     @Test

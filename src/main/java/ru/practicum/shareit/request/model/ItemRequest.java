@@ -10,17 +10,17 @@ import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Data
-@Entity( name = "ItemRequest" )
-@Table( name = "requests" )
+@Entity(name = "ItemRequest")
+@Table(name = "requests")
 public class ItemRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column( name = "id", nullable = false )
+    @Column(name = "id", nullable = false)
     private Integer id;
 
     @Size(max = 50)
     @NotEmpty
-    @Column( name = "description", nullable = false, length = 50 )
+    @Column(name = "description", nullable = false, length = 50)
     private String description;
 
     @NotNull

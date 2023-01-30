@@ -77,12 +77,13 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         List<Item> itemsList = itemRepository.findByRequestInOrderById(List.of(itemRequest));
         return getSmartRequestDtoList(List.of(itemRequest), itemsList).get(0);
     }
+
     private List<ItemReqDtoForResponse> getSmartRequestDtoList(List<ItemRequest> itemReqList, List<Item>  itemsList) {
         Map<Integer, List<Item>> itemByItemReqId = getMapOfItems(itemsList);
         List<ItemReqDtoForResponse> outList = new ArrayList<>();
-        for(ItemRequest itemRequest : itemReqList) {
+        for (ItemRequest itemRequest : itemReqList) {
             List<Item> tmpItemsList = itemByItemReqId.get(itemRequest.getId());
-            if(tmpItemsList == null) {
+            if (tmpItemsList == null) {
                 tmpItemsList = new ArrayList<>();
             }
             outList.add(ItemRequestMapper.toItemReqDtoForResponse(itemRequest, tmpItemsList));

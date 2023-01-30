@@ -59,7 +59,7 @@ class UserServiceTest {
                 .thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
-                () ->userService.getUserById(userId));
+                () -> userService.getUserById(userId));
 
         assertEquals("Не нашел пользователя с Id = 1", exception.getMessage()
                 ,"Не совпали сообщения об ошибке");

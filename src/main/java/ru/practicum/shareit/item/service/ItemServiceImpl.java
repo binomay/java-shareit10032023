@@ -18,7 +18,6 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repositary.CommentRepository;
 import ru.practicum.shareit.item.repositary.ItemRepository;
-import ru.practicum.shareit.numerators.ItemNumerator;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
@@ -178,7 +177,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto createItem(ItemDto itemDto) {
         ItemRequest itemRequest;
-        if(itemDto.getRequestId() != null) {
+        if (itemDto.getRequestId() != null) {
             itemRequest = itemRequestService.getItemRequestById(itemDto.getRequestId());
         } else {
             itemRequest = null;
@@ -191,7 +190,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(ItemDto itemDto) {
         ItemRequest itemRequest;
-        if(itemDto.getRequestId() != null) {
+        if (itemDto.getRequestId() != null) {
             itemRequest = itemRequestService.getItemRequestById(itemDto.getRequestId());
         } else {
             itemRequest = null;
