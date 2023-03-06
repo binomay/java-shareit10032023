@@ -1,4 +1,4 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.user;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
@@ -69,15 +69,13 @@ class UserServiceTest {
     void getUserDtoById_whenUserFound_thenReturnUser() {
         Integer userId = 1;
         User expectedUser = createOneUser(userId);
+        UserDto expectedUserDto = UserMapper.toUserDto(expectedUser);
         when(userRepository.findUserById(userId))
                 .thenReturn(Optional.of(expectedUser));
 
-        User actualUser = userService.getUserById(userId);
-        verify(userRepository).findUserById(argumentUserIdCaptor.capture());
-        Integer userIdForDelete = argumentUserIdCaptor.getValue();
+        UserDto actualUserDto = userService.getUserDtoById(userId);
 
-        assertEquals(userId, userIdForDelete);
-        assertEquals(expectedUser, actualUser, "Пользователи не совпали!");
+        assertEquals(expectedUserDto, actualUserDto);
         verify(userRepository).findUserById(userId);
     }
 
@@ -155,6 +153,30 @@ class UserServiceTest {
 
         assertEquals("new", expectedUser.getName());
         assertEquals("new@mail.ru", expectedUser.getEmail());
+    }
+
+    @Test
+    void updateUser_whenSomeFiedNullFound_Saved() {
+        Integer userId = 1;
+        User oldUser = new User();
+        oldUser.setId(userId);
+        oldUser.setName("oldname");
+        oldUser.setEmail("old@mail.ru");
+
+        UserDto newUserDto = new UserDto();
+        newUserDto.setId(userId);
+        when(userRepository.findUserById(userId))
+                .thenReturn(Optional.of(oldUser));
+        when(userRepository.save(oldUser))
+                .thenReturn(oldUser);
+
+        UserDto expectedUser = userService.updateUser(newUserDto);
+
+        verify(userRepository).save(argumentUserCaptor.capture());
+        User savedUser = argumentUserCaptor.getValue();
+
+        assertEquals(savedUser, oldUser);
+        assertEquals(expectedUser, UserMapper.toUserDto(oldUser));
     }
 
     @Test

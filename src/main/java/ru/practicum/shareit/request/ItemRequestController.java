@@ -15,12 +15,11 @@ import java.util.List;
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
 
-    final ItemRequestService itemRequestService;
+    private final ItemRequestService itemRequestService;
 
     public ItemRequestController(ItemRequestService itemRequestService) {
         this.itemRequestService = itemRequestService;
     }
-
 
     @PostMapping
     public ItemRequestOutDto createRequest(@RequestHeader("X-Sharer-User-Id") Integer userId,

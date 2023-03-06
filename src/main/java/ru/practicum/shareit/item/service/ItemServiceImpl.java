@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
+
 @Service
 @Transactional
 public class ItemServiceImpl implements ItemService {
@@ -40,6 +41,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final CommentRepository commentRepository;
     private final ItemRequestService itemRequestService;
+
 
     public ItemServiceImpl(ItemRepository itemRepository, UserService userService,
                            BookingRepositary bookingRepositary, CommentRepository commentRepository,
@@ -161,7 +163,9 @@ public class ItemServiceImpl implements ItemService {
         if (context.isEmpty()) {
             return new ArrayList<>();
         } else {
-        return itemRepository.contextSearch(upperContext, pageable).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+            List<Item> itemList = itemRepository.contextSearch(upperContext, pageable);
+            return itemList.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+            //return itemRepository.contextSearch(upperContext, pageable).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
         }
     }
 
@@ -189,13 +193,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(ItemDto itemDto) {
-        ItemRequest itemRequest;
-        if (itemDto.getRequestId() != null) {
-            itemRequest = itemRequestService.getItemRequestById(itemDto.getRequestId());
-        } else {
-            itemRequest = null;
-        }
-        Item item = ItemMapper.toItem(itemDto, userService.getUserById(itemDto.getOwner()), itemRequest);
+        Item item = ItemMapper.toItem(itemDto, userService.getUserById(itemDto.getOwner()), null);
         Item oldItem = getItemById(item.getId());
         //отредактировать вещь может только ее владелец
         checkOwner(item.getOwner(), oldItem.getOwner());
@@ -219,9 +217,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkOwner(User newOwner, User oldOwner) {
-        if (newOwner == null) {
-            throw new RightsException("Не указан owner");
-        } else if (!newOwner.equals(oldOwner)) {
+    if (!newOwner.equals(oldOwner)) {
             throw new RightsException("Редактировать вещь может только ее вдладелец");
         }
     }

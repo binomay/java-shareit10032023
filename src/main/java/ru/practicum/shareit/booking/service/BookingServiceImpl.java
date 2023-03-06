@@ -182,7 +182,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void checkApproving(Booking booking, Integer userId) {
         if (!Objects.equals(booking.getItem().getOwner().getId(), userId)) {
-            String msg = "Подтвердить бронирование может только владелец!";
+            String msg = "Подтвердить/отменить  бронирование может только владелец!";
             log.warn(msg);
             throw new ResourceNotFoundException(msg);
         }
