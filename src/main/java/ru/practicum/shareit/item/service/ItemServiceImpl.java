@@ -1,21 +1,25 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.BookingStatus;
 import ru.practicum.shareit.booking.dto.MagicBookings;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repositary.BookingRepositary;
+import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repositary.CommentRepository;
 import ru.practicum.shareit.exceptions.ResourceNotFoundException;
 import ru.practicum.shareit.exceptions.RightsException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repositary.CommentRepository;
 import ru.practicum.shareit.item.repositary.ItemRepository;
-import ru.practicum.shareit.numerators.ItemNumerator;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -27,6 +31,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
+
 @Service
 @Transactional
 public class ItemServiceImpl implements ItemService {
@@ -35,13 +40,17 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepositary bookingRepositary;
     private final UserService userService;
     private final CommentRepository commentRepository;
+    private final ItemRequestService itemRequestService;
+
 
     public ItemServiceImpl(ItemRepository itemRepository, UserService userService,
-                           BookingRepositary bookingRepositary, CommentRepository commentRepository) {
+                           BookingRepositary bookingRepositary, CommentRepository commentRepository,
+                           ItemRequestService itemRequestService) {
         this.itemRepository = itemRepository;
         this.userService = userService;
         this.bookingRepositary = bookingRepositary;
         this.commentRepository = commentRepository;
+        this.itemRequestService = itemRequestService;
     }
 
     @Override
@@ -65,9 +74,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemOutDtoWithDate> getUsersItems(Integer ownerId) {
+    public List<ItemOutDtoWithDate> getUsersItems(Integer ownerId, Integer from, Integer size) {
         List<ItemOutDtoWithDate> outList = new ArrayList<>();
-        List<Item> itemList = itemRepository.findAllByOwnerOrderById(userService.getUserById(ownerId));
+        Sort sortById = Sort.by("id");
+        Pageable pageable = PageRequest.of(from / size, size, sortById);
+        List<Item> itemList = itemRepository.findAllByOwner(userService.getUserById(ownerId), pageable);
         Map<Integer, List<Comment>> commentMap = getCommentsMap(itemList);
         Map<Integer, List<Booking>> bookingMap = getBookingMap(itemList);
         for (Item item : itemList) {
@@ -145,13 +156,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemsByContextSearch(String context) {
+    public List<ItemDto> getItemsByContextSearch(String context, Integer from, Integer size) {
+        Pageable pageable = PageRequest.of(from, size);
         String upperContext = context.toUpperCase();
         if (context.isEmpty()) {
             return new ArrayList<>();
         } else {
-            //return itemRepository.contextSearch(upperContext).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
-        return itemRepository.contextSearch(upperContext).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
+            List<Item> itemList = itemRepository.contextSearch(upperContext, pageable);
+            return itemList.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
         }
     }
 
@@ -166,15 +178,20 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto createItem(ItemDto itemDto) {
-        Item item = ItemMapper.toItem(itemDto, userService.getUserById(itemDto.getOwner()));
+        ItemRequest itemRequest;
+        if (itemDto.getRequestId() != null) {
+            itemRequest = itemRequestService.getItemRequestById(itemDto.getRequestId());
+        } else {
+            itemRequest = null;
+        }
+        Item item = ItemMapper.toItem(itemDto, userService.getUserById(itemDto.getOwner()), itemRequest);
         checkAvailable(item);
-        item.setId(ItemNumerator.getCurrenItemId());
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
     public ItemDto updateItem(ItemDto itemDto) {
-        Item item = ItemMapper.toItem(itemDto, userService.getUserById(itemDto.getOwner()));
+        Item item = ItemMapper.toItem(itemDto, userService.getUserById(itemDto.getOwner()), null);
         Item oldItem = getItemById(item.getId());
         //отредактировать вещь может только ее владелец
         checkOwner(item.getOwner(), oldItem.getOwner());
@@ -198,9 +215,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkOwner(User newOwner, User oldOwner) {
-        if (newOwner == null) {
-            throw new RightsException("Не указан owner");
-        } else if (!newOwner.equals(oldOwner)) {
+    if (!newOwner.equals(oldOwner)) {
             throw new RightsException("Редактировать вещь может только ее вдладелец");
         }
     }

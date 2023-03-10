@@ -8,6 +8,8 @@ import ru.practicum.shareit.item.dto.OutputCommentDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -27,14 +29,18 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemOutDtoWithDate> getUsersItems(@RequestHeader(value = "X-Sharer-User-Id") Integer ownerId) {
-        return itemService.getUsersItems(ownerId);
+    public List<ItemOutDtoWithDate> getUsersItems(@RequestHeader(value = "X-Sharer-User-Id") Integer ownerId,
+                                                  @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
+                                                  @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) {
+        return itemService.getUsersItems(ownerId, from, size);
 
     }
 
     @GetMapping("/search")
-    public List<ItemDto> getItemsByContextSearch(@RequestParam("text") String context) {
-        return itemService.getItemsByContextSearch(context);
+    public List<ItemDto> getItemsByContextSearch(@RequestParam("text") String context,
+                                                 @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
+                                                 @RequestParam(name = "size", defaultValue = "10") @Positive Integer size) {
+        return itemService.getItemsByContextSearch(context, from, size);
     }
 
     @PostMapping

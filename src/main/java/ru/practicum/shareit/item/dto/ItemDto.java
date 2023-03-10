@@ -15,9 +15,5 @@ public class ItemDto {
     @NotNull(message = "Доступность должна быть указана")
     private Boolean available;
     private Integer owner;
-    /*
-    request — если вещь была создана по запросу другого пользователя, то в этом
-    поле будет храниться ссылка на соответствующий запрос.
-     */
-    private Integer request;
+    private Integer requestId;
 }

@@ -1,6 +1,9 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.BookingStatus;
@@ -72,28 +75,29 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<OutputBookingDto> getUsersBooking(Integer userId, String state) {
+    public List<OutputBookingDto> getUsersBooking(Integer userId, String state, Integer from, Integer size) {
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
         User user = userService.getUserById(userId);
         List<Booking> bookList;
         switch (state) {
             case "ALL":
-                bookList = bookingRepositary.findBookingByBookerOrderByStartDesc(user);
+                bookList = bookingRepositary.findBookingByBooker(user, pageable);
                 break;
             case "WAITING":
             case "REJECTED":
-                bookList = bookingRepositary.findBookingByBookerAndStatusOrderByStartDesc(user, state);
+                bookList = bookingRepositary.findBookingByBookerAndStatus(user, state, pageable);
                 break;
             case "CURRENT":
                 LocalDateTime dateTime = LocalDateTime.now();
-                bookList = bookingRepositary.findBookingByBookerAndStartBeforeAndEndAfterOrderByStartDesc(user, dateTime, dateTime);
+                bookList = bookingRepositary.findBookingByBookerAndStartBeforeAndEndAfter(user, dateTime, dateTime, pageable);
                 break;
             case "PAST":
                 LocalDateTime dateTime1 = LocalDateTime.now();
-                bookList = bookingRepositary.findBookingByBookerAndEndBeforeOrderByStartDesc(user, dateTime1);
+                bookList = bookingRepositary.findBookingByBookerAndEndBefore(user, dateTime1, pageable);
                 break;
             case "FUTURE":
                 LocalDateTime dateTime2 = LocalDateTime.now();
-                bookList = bookingRepositary.findBookingByBookerAndStartAfterOrderByStartDesc(user, dateTime2);
+                bookList = bookingRepositary.findBookingByBookerAndStartAfter(user, dateTime2, pageable);
                 break;
             default:
                 String msg = "Unknown state: UNSUPPORTED_STATUS";
@@ -104,28 +108,29 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<OutputBookingDto> getBookingsForOwner(Integer userId, String state) {
+    public List<OutputBookingDto> getBookingsForOwner(Integer userId, String state, Integer from, Integer size) {
         User user = userService.getUserById(userId);
         List<Booking> bookList;
+        Pageable pageable = PageRequest.of(from / size, size);
         switch (state) {
             case "ALL":
-                bookList = bookingRepositary.getAllBookingsForOwner(userId);
+                bookList = bookingRepositary.getAllBookingsForOwner(userId, pageable);
                 break;
             case "WAITING":
             case "REJECTED":
-                bookList = bookingRepositary.getBookingsForOwnerByStatus(userId, state);
+                bookList = bookingRepositary.getBookingsForOwnerByStatus(userId, state, pageable);
                 break;
             case "CURRENT":
                 LocalDateTime dateTime = LocalDateTime.now();
-                bookList = bookingRepositary.getCurrentBookingForOwner(userId, dateTime, dateTime);
+                bookList = bookingRepositary.getCurrentBookingForOwner(userId, dateTime, dateTime, pageable);
                 break;
             case "PAST":
                 LocalDateTime dateTime1 = LocalDateTime.now();
-                bookList = bookingRepositary.getPastBookingForOwner(userId, dateTime1);
+                bookList = bookingRepositary.getPastBookingForOwner(userId, dateTime1, pageable);
                 break;
             case "FUTURE":
                 LocalDateTime dateTime2 = LocalDateTime.now();
-                bookList = bookingRepositary.getFutureBookingForOwner(userId, dateTime2);
+                bookList = bookingRepositary.getFutureBookingForOwner(userId, dateTime2, pageable);
                 break;
             default:
                 String msg = "Unknown state: UNSUPPORTED_STATUS";
@@ -169,7 +174,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void checkApproving(Booking booking, Integer userId) {
         if (!Objects.equals(booking.getItem().getOwner().getId(), userId)) {
-            String msg = "Подтвердить бронирование может только владелец!";
+            String msg = "Подтвердить/отменить  бронирование может только владелец!";
             log.warn(msg);
             throw new ResourceNotFoundException(msg);
         }

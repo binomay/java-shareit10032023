@@ -22,7 +22,7 @@ public class Booking {
     @Column(name = "END_DATE", nullable = false)
     LocalDateTime end;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ITEM.ID")
+    @JoinColumn(name = "ITEM_ID")
     Item item;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "BOOKER_ID")

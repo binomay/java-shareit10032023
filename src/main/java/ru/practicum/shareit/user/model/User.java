@@ -3,10 +3,7 @@ package ru.practicum.shareit.user.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 
 @Getter
@@ -15,6 +12,7 @@ import javax.persistence.Table;
 @Table(name = "USERS")
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Integer id;
     @Column(name = "NAME", nullable = false, length = 50)
