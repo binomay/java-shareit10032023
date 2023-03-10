@@ -10,13 +10,13 @@ import ru.practicum.shareit.BookingStatus;
 import ru.practicum.shareit.booking.dto.MagicBookings;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repositary.BookingRepositary;
+import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repositary.CommentRepository;
 import ru.practicum.shareit.exceptions.ResourceNotFoundException;
 import ru.practicum.shareit.exceptions.RightsException;
 import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repositary.CommentRepository;
 import ru.practicum.shareit.item.repositary.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
@@ -77,8 +77,7 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemOutDtoWithDate> getUsersItems(Integer ownerId, Integer from, Integer size) {
         List<ItemOutDtoWithDate> outList = new ArrayList<>();
         Sort sortById = Sort.by("id");
-        Pageable pageable = PageRequest.of(from, size, sortById);
-        //List<Item> itemList = itemRepository.findAllByOwnerOrderById(userService.getUserById(ownerId));
+        Pageable pageable = PageRequest.of(from / size, size, sortById);
         List<Item> itemList = itemRepository.findAllByOwner(userService.getUserById(ownerId), pageable);
         Map<Integer, List<Comment>> commentMap = getCommentsMap(itemList);
         Map<Integer, List<Booking>> bookingMap = getBookingMap(itemList);
@@ -165,7 +164,6 @@ public class ItemServiceImpl implements ItemService {
         } else {
             List<Item> itemList = itemRepository.contextSearch(upperContext, pageable);
             return itemList.stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
-            //return itemRepository.contextSearch(upperContext, pageable).stream().map(ItemMapper::toItemDto).collect(Collectors.toList());
         }
     }
 

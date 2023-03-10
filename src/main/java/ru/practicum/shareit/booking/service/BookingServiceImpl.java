@@ -76,20 +76,12 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<OutputBookingDto> getUsersBooking(Integer userId, String state, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(from, size, Sort.by("start").descending());
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("start").descending());
         User user = userService.getUserById(userId);
         List<Booking> bookList;
         switch (state) {
             case "ALL":
-                //в тестах постмена косяк. не проходит тест Bookings get all with from = 2 & size = 2 when all=3
-                //при этом в запросе параметры from = 2  и size = 2
-                //а ожидается  ровно 1 запись!!!!! Ну как это?????? не должно быть ни одной записи на третьей странице..
-                //в общем руками откручиваю страницу на 1, чтобы этот тест пройти...
-                if (from == 2 && size == 2) {
-                    from = 1;
-                }
-                Pageable pageable1 = PageRequest.of(from, size, Sort.by("start").descending());
-                bookList = bookingRepositary.findBookingByBooker(user, pageable1);
+                bookList = bookingRepositary.findBookingByBooker(user, pageable);
                 break;
             case "WAITING":
             case "REJECTED":
@@ -119,7 +111,7 @@ public class BookingServiceImpl implements BookingService {
     public List<OutputBookingDto> getBookingsForOwner(Integer userId, String state, Integer from, Integer size) {
         User user = userService.getUserById(userId);
         List<Booking> bookList;
-        Pageable pageable = PageRequest.of(from, size);
+        Pageable pageable = PageRequest.of(from / size, size);
         switch (state) {
             case "ALL":
                 bookList = bookingRepositary.getAllBookingsForOwner(userId, pageable);

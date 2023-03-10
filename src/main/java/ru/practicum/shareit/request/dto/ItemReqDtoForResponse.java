@@ -11,5 +11,5 @@ public class ItemReqDtoForResponse {
     private Integer id;
     private String description;
     private LocalDateTime created;
-    List<ItemDtoForReq> items;
+    private List<ItemDtoForReq> items;
 }

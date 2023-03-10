@@ -1,14 +1,17 @@
 package ru.practicum.shareit.booking;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.InputBookingDto;
 import ru.practicum.shareit.booking.dto.OutputBookingDto;
 import ru.practicum.shareit.booking.service.BookingService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping(path = "/bookings")
 public class BookingController {
@@ -19,7 +22,7 @@ public class BookingController {
     }
 
     @PostMapping
-    public OutputBookingDto createBooking(@RequestBody InputBookingDto inputBookingDto, @RequestHeader(value = "X-Sharer-User-Id") Integer bookerId) {
+    public OutputBookingDto createBooking(@Valid @RequestBody InputBookingDto inputBookingDto, @RequestHeader(value = "X-Sharer-User-Id") Integer bookerId) {
         inputBookingDto.setBookerId(bookerId);
         return bookingService.createBooking(inputBookingDto);
     }
@@ -37,7 +40,7 @@ public class BookingController {
 
     @GetMapping
     public List<OutputBookingDto> getBookingsForUser(@RequestHeader(value = "X-Sharer-User-Id") Integer userId,
-                                                     @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero Integer from,
+                                                     @RequestParam(name = "from", defaultValue = "0")  @PositiveOrZero Integer from,
                                                      @RequestParam(name = "size", defaultValue = "10") @Positive Integer size,
                                                      @RequestParam(name = "state", defaultValue = "ALL") String state) {
         return bookingService.getUsersBooking(userId, state, from, size);
